@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>TETRIS</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Main Menu -->
+  <div id="screen-menu" class="screen active">
+    <div class="menu-content">
+      <div class="title-block">
+        <span class="title-letter" style="--c:var(--piece-i)">T</span>
+        <span class="title-letter" style="--c:var(--piece-o)">E</span>
+        <span class="title-letter" style="--c:var(--piece-t)">T</span>
+        <span class="title-letter" style="--c:var(--piece-s)">R</span>
+        <span class="title-letter" style="--c:var(--piece-z)">I</span>
+        <span class="title-letter" style="--c:var(--piece-l)">S</span>
+      </div>
+      <div class="menu-buttons">
+        <button id="btn-start" class="btn btn-primary">START GAME</button>
+        <button id="btn-scores" class="btn btn-secondary">HIGH SCORES</button>
+      </div>
+      <div class="menu-hint">
+        ← → MOVE &nbsp; ↑ ROTATE &nbsp; ↓ SOFT DROP<br>
+        SPACE HARD DROP &nbsp; C HOLD &nbsp; P PAUSE
+      </div>
+    </div>
+  </div>
+
+  <!-- High Scores Screen -->
+  <div id="screen-scores" class="screen">
+    <div class="scores-content">
+      <div class="scores-title">HIGH SCORES</div>
+      <table class="scores-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>NAME</th>
+            <th>SCORE</th>
+            <th>DATE</th>
+          </tr>
+        </thead>
+        <tbody id="scores-body"></tbody>
+      </table>
+      <button id="btn-scores-back" class="btn btn-ghost">← BACK</button>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="screen-game" class="screen">
+    <div class="game-layout">
+
+      <!-- Left panel (desktop: column; mobile: top stats row) -->
+      <div class="side-panel side-left">
+        <div class="stat-box">
+          <div class="stat-label">SCORE</div>
+          <div class="stat-value" id="display-score">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">LEVEL</div>
+          <div class="stat-value" id="display-level">1</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">LINES</div>
+          <div class="stat-value" id="display-lines">0</div>
+        </div>
+        <div class="stat-box preview-box">
+          <div class="stat-label">HOLD</div>
+          <canvas id="canvas-hold" width="80" height="64"></canvas>
+        </div>
+      </div>
+
+      <!-- Board -->
+      <div class="board-wrapper">
+        <canvas id="canvas-board" width="300" height="600"></canvas>
+
+        <div id="pause-overlay" class="board-overlay hidden">
+          <div class="overlay-box">
+            <div class="overlay-title">PAUSED</div>
+            <button id="btn-resume" class="btn btn-primary">RESUME</button>
+            <button id="btn-pause-menu" class="btn btn-ghost">MENU</button>
+          </div>
+        </div>
+
+        <div id="gameover-overlay" class="board-overlay hidden">
+          <div class="overlay-box">
+            <div class="overlay-title">GAME OVER</div>
+            <div class="stat-label" style="margin-bottom:4px">SCORE</div>
+            <div class="overlay-score" id="gameover-score">0</div>
+            <div id="initials-entry" class="initials-entry hidden">
+              <div class="initials-label">NEW HIGH SCORE!</div>
+              <div class="initials-label">ENTER NAME:</div>
+              <input id="initials-input" class="initials-input" maxlength="3"
+                     spellcheck="false" autocomplete="off" placeholder="AAA">
+            </div>
+            <div class="overlay-buttons">
+              <button id="btn-play-again" class="btn btn-primary">PLAY AGAIN</button>
+              <button id="btn-gameover-menu" class="btn btn-ghost">MENU</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right panel (desktop: column; mobile: hidden — next shown in mobile-panels) -->
+      <div class="side-panel side-right">
+        <div class="stat-box preview-box">
+          <div class="stat-label">NEXT</div>
+          <canvas id="canvas-next" width="80" height="64"></canvas>
+        </div>
+        <div class="controls-hint">
+          <div class="hint-row">↑/Z ROTATE</div>
+          <div class="hint-row">← → MOVE</div>
+          <div class="hint-row">↓ SOFT DROP</div>
+          <div class="hint-row">SPC HARD DROP</div>
+          <div class="hint-row">C HOLD</div>
+          <div class="hint-row">P PAUSE</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Mobile-only: hold + next previews below the board -->
+    <div class="mobile-panels">
+      <div class="stat-box mobile-preview-box">
+        <div class="stat-label">HOLD</div>
+        <canvas id="canvas-hold-m" width="60" height="48"></canvas>
+      </div>
+      <div class="stat-box mobile-preview-box">
+        <div class="stat-label">NEXT</div>
+        <canvas id="canvas-next-m" width="60" height="48"></canvas>
+      </div>
+    </div>
+
+    <!-- Mobile-only: on-screen touch controls -->
+    <div class="touch-controls" id="touch-controls">
+      <div class="tc-row">
+        <button class="tc-btn" id="tc-left">←</button>
+        <button class="tc-btn" id="tc-rotate">↻</button>
+        <button class="tc-btn" id="tc-right">→</button>
+      </div>
+      <div class="tc-row">
+        <button class="tc-btn" id="tc-hold-btn">HOLD</button>
+        <button class="tc-btn tc-wide" id="tc-drop">⬇ DROP</button>
+        <button class="tc-btn" id="tc-pause-btn">⏸</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CRT scanline overlay -->
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>

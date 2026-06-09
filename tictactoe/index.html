@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Tic Tac Toe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Main Menu -->
+  <div id="screen-menu" class="screen active">
+    <div class="menu-content">
+      <h1 class="title">TIC<br>TAC<br>TOE</h1>
+      <div class="menu-buttons">
+        <button id="btn-pvp" class="btn btn-primary">2 Players</button>
+        <button id="btn-pve" class="btn btn-secondary">vs AI</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Board -->
+  <div id="screen-board" class="screen">
+    <div class="board-header">
+      <button id="btn-menu" class="btn btn-small">&#8592; Menu</button>
+      <div id="game-info">
+        <span id="turn-label">Player X's Turn</span>
+        <span id="level-badge" class="level-badge hidden">Level 1</span>
+      </div>
+    </div>
+
+    <div id="board" class="board">
+      <div class="cell" data-index="0"></div>
+      <div class="cell" data-index="1"></div>
+      <div class="cell" data-index="2"></div>
+      <div class="cell" data-index="3"></div>
+      <div class="cell" data-index="4"></div>
+      <div class="cell" data-index="5"></div>
+      <div class="cell" data-index="6"></div>
+      <div class="cell" data-index="7"></div>
+      <div class="cell" data-index="8"></div>
+
+      <!-- Game-over overlay sits inside the board for clean positioning -->
+      <div id="game-over-overlay" class="overlay hidden">
+        <div class="overlay-content">
+          <div id="result-text" class="result-text"></div>
+          <div id="result-subtitle" class="result-subtitle"></div>
+          <div class="overlay-buttons">
+            <button id="btn-next-level" class="btn btn-primary hidden">Next Level &#8594;</button>
+            <button id="btn-retry" class="btn btn-secondary">Play Again</button>
+            <button id="btn-back-menu" class="btn btn-ghost">Menu</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Victory Screen -->
+  <div id="screen-victory" class="screen">
+    <div class="victory-content">
+      <div class="victory-star" id="victory-star"></div>
+      <h1 class="victory-title">You Win!</h1>
+      <p class="victory-sub">You defeated all 3 AI levels!</p>
+      <div class="victory-buttons">
+        <button id="btn-play-again" class="btn btn-primary">Play Again</button>
+        <button id="btn-victory-menu" class="btn btn-ghost">Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

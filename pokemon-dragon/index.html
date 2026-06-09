@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Dragon Slayer</title>
+<style>
+  :root{
+    --bg:#1b1228;
+    --panel:#2b1f3f;
+    --panel-light:#3a2a55;
+    --ink:#f4ecd8;
+    --gold:#ffcf4d;
+    --red:#e0473f;
+    --green:#4fd86a;
+    --hp-back:#3a2a55;
+    --border:#0c0814;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{
+    height:100%;
+    background:
+      radial-gradient(circle at 50% -10%, #3a2a55 0%, #1b1228 60%) ;
+    color:var(--ink);
+    font-family:"Courier New",monospace;
+    -webkit-user-select:none;user-select:none;
+    image-rendering:pixelated;
+  }
+  body{display:flex;align-items:center;justify-content:center;padding:14px;}
+  .frame{
+    width:100%;max-width:480px;
+    background:var(--panel);
+    border:4px solid var(--border);
+    border-radius:6px;
+    box-shadow:0 0 0 4px #4a3768, 0 12px 0 4px #0c0814, 0 16px 30px rgba(0,0,0,.6);
+    padding:18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .screen{display:none;}
+  .screen.active{display:block;animation:fadein .25s ease;}
+  @keyframes fadein{from{opacity:0;}to{opacity:1;}}
+
+  h1.title{
+    text-align:center;font-size:34px;line-height:1.1;letter-spacing:1px;
+    color:var(--gold);
+    text-shadow:3px 3px 0 #7a2d12, 0 0 12px rgba(255,207,77,.4);
+    margin:18px 0 6px;
+  }
+  .title-emoji{text-align:center;font-size:64px;margin:6px 0;filter:drop-shadow(0 4px 0 #0c0814);}
+  .blurb{text-align:center;font-size:13px;line-height:1.6;color:#cbbce6;margin:10px 18px 22px;}
+
+  .btn{
+    display:block;width:100%;
+    background:var(--gold);color:#3a1d05;
+    border:none;border-bottom:4px solid #b8860a;border-radius:4px;
+    padding:13px;font-family:inherit;font-size:16px;font-weight:bold;letter-spacing:1px;
+    cursor:pointer;text-transform:uppercase;
+    transition:transform .05s, filter .1s;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn:active{transform:translateY(3px);border-bottom-width:1px;}
+  .btn.secondary{background:var(--panel-light);color:var(--ink);border-bottom-color:#241834;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.5);}
+
+  /* ---- character select ---- */
+  .select-title{text-align:center;font-size:20px;color:var(--gold);margin:8px 0 16px;letter-spacing:1px;}
+  .cards{display:flex;flex-direction:column;gap:12px;}
+  .card{
+    display:flex;gap:12px;align-items:center;
+    background:var(--panel-light);
+    border:3px solid var(--border);border-radius:5px;
+    padding:12px;cursor:pointer;
+    transition:transform .08s, box-shadow .1s;
+  }
+  .card:hover{transform:translateY(-2px);box-shadow:0 6px 0 var(--border);}
+  .card:active{transform:translateY(0);}
+  .card .face{font-size:46px;line-height:1;flex:0 0 auto;width:58px;text-align:center;}
+  .card .info{flex:1;}
+  .card .cname{font-size:17px;font-weight:bold;color:var(--gold);}
+  .card .weapon{font-size:12px;color:#cbbce6;margin:2px 0 6px;}
+  .card .stats{display:flex;gap:8px;flex-wrap:wrap;font-size:11px;}
+  .pill{background:var(--border);padding:2px 7px;border-radius:10px;}
+  .pill.atk{color:#ff9b6b;}
+  .pill.hp{color:var(--green);}
+  .card .ability{font-size:11px;color:#9d8fc0;margin-top:5px;font-style:italic;}
+
+  /* ---- battle ---- */
+  .arena{
+    background:linear-gradient(#241834,#191022);
+    border:3px solid var(--border);border-radius:5px;
+    padding:10px;position:relative;overflow:hidden;
+    min-height:300px;
+  }
+  .combatant{display:flex;align-items:center;gap:10px;margin:6px 0;}
+  .combatant.enemy{flex-direction:row-reverse;text-align:right;}
+  .nameplate{flex:1;}
+  .nameplate .n{font-size:14px;font-weight:bold;color:var(--gold);}
+  .hpbar{
+    height:14px;background:var(--hp-back);border:2px solid var(--border);border-radius:8px;
+    overflow:hidden;margin-top:4px;position:relative;
+  }
+  .hpfill{
+    height:100%;width:100%;
+    background:linear-gradient(var(--green),#2fa34a);
+    transition:width .45s cubic-bezier(.2,.8,.2,1);
+  }
+  .hpfill.mid{background:linear-gradient(#ffd24d,#e0a020);}
+  .hpfill.low{background:linear-gradient(#ff6b5e,#d8362b);}
+  .hptext{font-size:11px;color:#cbbce6;margin-top:2px;}
+  .badges{display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;}
+  .badge{font-size:10px;padding:2px 6px;border-radius:8px;background:var(--border);}
+  .badge.up{color:var(--gold);}
+  .badge.down{color:#ff8a8a;}
+
+  .sprite{
+    font-size:62px;line-height:1;flex:0 0 auto;
+    filter:drop-shadow(0 4px 0 rgba(0,0,0,.5));
+    position:relative;transition:transform .15s;
+  }
+  .sprite.enemy{font-size:78px;}
+
+  .stage{position:relative;height:120px;margin:8px 0 4px;}
+  .stage .ground{
+    position:absolute;left:0;right:0;bottom:0;height:26px;
+    background:linear-gradient(#3a2a55,#2b1f3f);border-top:3px solid var(--border);
+    border-radius:0 0 4px 4px;
+  }
+  .stage .hero{position:absolute;left:14px;bottom:18px;}
+  .stage .boss{position:absolute;right:14px;bottom:24px;}
+
+  /* attack / hit animations */
+  @keyframes lungeRight{0%{transform:translateX(0);}40%{transform:translateX(180px) scale(1.05);}100%{transform:translateX(0);}}
+  @keyframes lungeLeft{0%{transform:translateX(0);}40%{transform:translateX(-180px) scale(1.05);}100%{transform:translateX(0);}}
+  .lunge-r{animation:lungeRight .45s ease;}
+  .lunge-l{animation:lungeLeft .45s ease;}
+  @keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px) rotate(-4deg);}40%{transform:translateX(8px) rotate(4deg);}60%{transform:translateX(-6px);}80%{transform:translateX(6px);}}
+  .shake{animation:shake .4s ease;}
+  @keyframes flashred{0%,100%{filter:drop-shadow(0 4px 0 rgba(0,0,0,.5));}30%{filter:drop-shadow(0 0 14px #ff4d4d) brightness(1.6) hue-rotate(-20deg);}}
+  .flash{animation:flashred .4s ease;}
+  @keyframes glowGold{0%,100%{transform:scale(1);filter:drop-shadow(0 4px 0 rgba(0,0,0,.5));}50%{transform:scale(1.2);filter:drop-shadow(0 0 18px var(--gold)) brightness(1.3);}}
+  .buff{animation:glowGold .5s ease;}
+  @keyframes glowGreen{0%,100%{filter:drop-shadow(0 4px 0 rgba(0,0,0,.5));}50%{filter:drop-shadow(0 0 18px var(--green)) brightness(1.3);}}
+  .healfx{animation:glowGreen .5s ease;}
+  @keyframes dodgeStep{0%{transform:translateX(0);opacity:1;}30%{transform:translateX(-26px);opacity:.4;}60%{transform:translateX(-26px);opacity:.4;}100%{transform:translateX(0);opacity:1;}}
+  .dodge{animation:dodgeStep .5s ease;}
+  @keyframes faint{0%{transform:translateY(0) rotate(0);opacity:1;}100%{transform:translateY(40px) rotate(70deg);opacity:0;}}
+  .faint{animation:faint .8s forwards ease-in;}
+
+  /* floating numbers */
+  .floater{
+    position:absolute;font-size:22px;font-weight:bold;pointer-events:none;
+    text-shadow:2px 2px 0 #000;animation:floatUp 1s forwards ease-out;z-index:6;
+  }
+  @keyframes floatUp{0%{transform:translateY(0);opacity:0;}15%{opacity:1;}100%{transform:translateY(-50px);opacity:0;}}
+  .floater.dmg{color:#ff6b5e;}
+  .floater.heal{color:var(--green);}
+  .floater.txt{color:var(--gold);font-size:18px;}
+
+  /* projectile */
+  .proj{position:absolute;font-size:26px;z-index:5;pointer-events:none;}
+
+  .log{
+    background:var(--border);border-radius:4px;
+    padding:9px 11px;margin-top:10px;min-height:40px;
+    font-size:13px;line-height:1.4;color:var(--ink);
+  }
+  .log .round{color:#9d8fc0;font-size:11px;}
+  .actions{display:flex;gap:10px;margin-top:12px;}
+  .actions .btn{flex:1;}
+
+  /* result overlay */
+  .overlay{
+    position:absolute;inset:0;display:none;
+    flex-direction:column;align-items:center;justify-content:center;gap:18px;
+    background:rgba(12,8,20,.88);z-index:20;padding:24px;text-align:center;
+  }
+  .overlay.show{display:flex;animation:fadein .3s ease;}
+  .overlay .big{font-size:42px;font-weight:bold;letter-spacing:2px;}
+  .overlay.win .big{color:var(--gold);text-shadow:3px 3px 0 #7a2d12;}
+  .overlay.lose .big{color:#ff6b5e;text-shadow:3px 3px 0 #3a0c08;}
+  .overlay .sub{font-size:14px;color:#cbbce6;}
+  .overlay .obtns{display:flex;flex-direction:column;gap:10px;width:100%;max-width:240px;}
+  .footer{text-align:center;font-size:10px;color:#6d5f8c;margin-top:14px;letter-spacing:1px;}
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <!-- ============ MENU ============ -->
+  <section class="screen active" id="screen-menu">
+    <h1 class="title">DRAGON<br>SLAYER</h1>
+    <div class="title-emoji">⚔️🐉</div>
+    <p class="blurb">A lone hero stands before the ancient dragon.<br>Choose your champion. Trade blows. Survive.</p>
+    <button class="btn" id="startBtn">Start Quest</button>
+    <p class="footer">A RETRO TURN-BASED BATTLE</p>
+  </section>
+
+  <!-- ============ SELECT ============ -->
+  <section class="screen" id="screen-select">
+    <div class="select-title">⚔ CHOOSE YOUR HERO ⚔</div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <!-- ============ BATTLE ============ -->
+  <section class="screen" id="screen-battle">
+    <div class="arena">
+      <!-- enemy plate -->
+      <div class="combatant enemy">
+        <div class="nameplate">
+          <div class="n" id="bossName">Dragon</div>
+          <div class="hpbar"><div class="hpfill" id="bossHp"></div></div>
+          <div class="hptext" id="bossHpText"></div>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="ground"></div>
+        <div class="sprite enemy boss" id="bossSprite">🐉</div>
+        <div class="sprite hero" id="heroSprite">🛡️</div>
+      </div>
+
+      <!-- hero plate -->
+      <div class="combatant">
+        <div class="nameplate">
+          <div class="n" id="heroName">Hero</div>
+          <div class="hpbar"><div class="hpfill" id="heroHp"></div></div>
+          <div class="hptext" id="heroHpText"></div>
+          <div class="badges" id="heroBadges"></div>
+        </div>
+      </div>
+
+      <div class="overlay" id="overlay">
+        <div class="big" id="overlayBig"></div>
+        <div class="sub" id="overlaySub"></div>
+        <div class="obtns">
+          <button class="btn" id="againBtn">Play Again</button>
+          <button class="btn secondary" id="menuBtn">Main Menu</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="log" id="log"><span class="round" id="roundLabel">Round 1</span><br><span id="logText">A wild Dragon appears!</span></div>
+
+    <div class="actions">
+      <button class="btn" id="attackBtn">⚔ Attack</button>
+      <button class="btn secondary" id="strBtn">↑ Strengthen</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- character data ----------
+  const CHARS = {
+    knight:{ key:"knight", name:"Knight", emoji:"🛡️", weapon:"Sword ⚔️", weaponIcon:"🗡️",
+      atk:30, hp:100, ability:"Mighty blows — highest attack." , special:null },
+    witch:{ key:"witch", name:"Witch", emoji:"🧙", weapon:"Staff 🪄", weaponIcon:"✨",
+      atk:12, hp:125, ability:"Restores 10 HP every round.", special:"heal" },
+    archer:{ key:"archer", name:"Archer", emoji:"🏹", weapon:"Bow 🏹", weaponIcon:"➶",
+      atk:20, hp:75, ability:"50% chance to dodge attacks.", special:"dodge" },
+  };
+
+  const DRAGON = { name:"Ancient Dragon", emoji:"🐉", hp:220, atk:18, heal:24 };
+
+  const STACK_CAP = 3;
+  const STR_MULT = 1.5;
+  const WEAK_MULT = 0.5;
+
+  // ---------- state ----------
+  let S = null;
+  let busy = false;
+
+  // ---------- dom ----------
+  const $ = id => document.getElementById(id);
+  const screens = {
+    menu:$("screen-menu"), select:$("screen-select"), battle:$("screen-battle")
+  };
+  function show(name){
+    Object.values(screens).forEach(s=>s.classList.remove("active"));
+    screens[name].classList.add("active");
+  }
+
+  // ---------- menu ----------
+  $("startBtn").addEventListener("click", ()=>{ buildCards(); show("select"); });
+
+  function buildCards(){
+    const wrap = $("cards");
+    wrap.innerHTML = "";
+    Object.values(CHARS).forEach(c=>{
+      const card = document.createElement("div");
+      card.className = "card";
+      const atkLabel = c.atk>=30?"High":c.atk<=12?"Low":"Normal";
+      card.innerHTML =
+        `<div class="face">${c.emoji}</div>
+         <div class="info">
+           <div class="cname">${c.name}</div>
+           <div class="weapon">${c.weapon}</div>
+           <div class="stats">
+             <span class="pill atk">ATK ${atkLabel} (${c.atk})</span>
+             <span class="pill hp">HP ${c.hp}</span>
+           </div>
+           <div class="ability">${c.ability}</div>
+         </div>`;
+      card.addEventListener("click", ()=>startBattle(c.key));
+      wrap.appendChild(card);
+    });
+  }
+
+  // ---------- battle setup ----------
+  function startBattle(key){
+    const c = CHARS[key];
+    S = {
+      hero:{ ...c, maxHp:c.hp, curHp:c.hp },
+      boss:{ ...DRAGON, maxHp:DRAGON.hp, curHp:DRAGON.hp },
+      buff:0, round:1, done:false
+    };
+    busy = false;
+    $("overlay").className = "overlay";
+    $("heroSprite").textContent = c.emoji;
+    $("heroSprite").className = "sprite hero";
+    $("bossSprite").textContent = DRAGON.emoji;
+    $("bossSprite").className = "sprite enemy boss";
+    $("heroName").textContent = c.name;
+    $("bossName").textContent = DRAGON.name;
+    setLog(`A wild ${DRAGON.name} appears!`);
+    setButtons(true);
+    render();
+    show("battle");
+  }
+
+  // ---------- rendering ----------
+  function hpClass(cur,max){
+    const r = cur/max;
+    return r<=0.25?"low":r<=0.5?"mid":"";
+  }
+  function render(){
+    const h=S.hero, b=S.boss;
+    const hf=$("heroHp"), bf=$("bossHp");
+    hf.style.width = Math.max(0,(h.curHp/h.maxHp*100))+"%";
+    bf.style.width = Math.max(0,(b.curHp/b.maxHp*100))+"%";
+    hf.className = "hpfill "+hpClass(h.curHp,h.maxHp);
+    bf.className = "hpfill "+hpClass(b.curHp,b.maxHp);
+    $("heroHpText").textContent = `${Math.max(0,Math.round(h.curHp))} / ${h.maxHp} HP`;
+    $("bossHpText").textContent = `${Math.max(0,Math.round(b.curHp))} / ${b.maxHp} HP`;
+    $("roundLabel").textContent = "Round "+S.round;
+
+    // badges
+    const badges = $("heroBadges");
+    badges.innerHTML = "";
+    const mult = playerMult();
+    const mb = document.createElement("span");
+    mb.className = "badge "+(mult>1?"up":mult<1?"down":"");
+    mb.textContent = "DMG ×"+fmt(mult);
+    badges.appendChild(mb);
+    if(S.buff>0) addBadge(badges,"up","↑ Str "+S.buff);
+    if(S.buff<0) addBadge(badges,"down","↓ Weak "+(-S.buff));
+    if(S.hero.special==="dodge") addBadge(badges,"up","Dodge 50%");
+    if(S.hero.special==="heal") addBadge(badges,"up","Regen +10");
+  }
+  function addBadge(parent,kind,txt){
+    const s=document.createElement("span");
+    s.className="badge "+kind; s.textContent=txt; parent.appendChild(s);
+  }
+  function fmt(n){ return (Math.round(n*100)/100).toString(); }
+
+  function playerMult(){
+    // single combined buff value: + = strengthened (×1.5 each), - = weakened (×0.5 each)
+    return S.buff>=0 ? Math.pow(STR_MULT,S.buff) : Math.pow(WEAK_MULT,-S.buff);
+  }
+  function setLog(txt){ $("logText").textContent = txt; }
+  function setButtons(on){
+    $("attackBtn").disabled = !on;
+    $("strBtn").disabled = !on;
+  }
+
+  // ---------- effects ----------
+  function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+  function floater(targetSprite, text, cls){
+    const stage = targetSprite.parentElement;
+    const f = document.createElement("div");
+    f.className = "floater "+cls;
+    f.textContent = text;
+    const isHero = targetSprite.classList.contains("hero");
+    f.style.bottom = "70px";
+    f.style[isHero?"left":"right"] = "26px";
+    stage.appendChild(f);
+    setTimeout(()=>f.remove(),1000);
+  }
+
+  function projectile(fromHero, icon){
+    const stage = $("heroSprite").parentElement;
+    const p = document.createElement("div");
+    p.className="proj";
+    p.textContent=icon;
+    p.style.bottom="60px";
+    stage.appendChild(p);
+    if(fromHero){
+      p.style.left="70px";
+      p.animate([{left:"70px"},{left:"330px"}],{duration:380,easing:"ease-in"});
+    }else{
+      p.style.right="80px";
+      p.animate([{right:"80px"},{right:"330px"}],{duration:380,easing:"ease-in"});
+    }
+    setTimeout(()=>p.remove(),380);
+  }
+
+  async function heroAttackFx(){
+    const hs=$("heroSprite"), bs=$("bossSprite");
+    const c = S.hero;
+    if(c.special==="dodge" || c.key==="archer"){
+      // ranged: shoot arrow
+      projectile(true,"➳");
+      await delay(380);
+    }else if(c.key==="witch"){
+      projectile(true,"🔮");
+      await delay(380);
+    }else{
+      hs.classList.add("lunge-r");
+      await delay(300);
+    }
+    bs.classList.add("shake","flash");
+    await delay(200);
+    hs.classList.remove("lunge-r");
+    bs.classList.remove("shake","flash");
+  }
+
+  async function bossAttackFx(){
+    const bs=$("bossSprite"), hs=$("heroSprite");
+    bs.classList.add("lunge-l");
+    await delay(300);
+    hs.classList.add("shake","flash");
+    await delay(200);
+    bs.classList.remove("lunge-l");
+    hs.classList.remove("shake","flash");
+  }
+
+  // ---------- combat math ----------
+  function variance(base){
+    const v = 0.9 + Math.random()*0.2; // ±10%
+    return Math.max(1, Math.round(base*v));
+  }
+
+  // ---------- player turn ----------
+  async function playerAttack(){
+    const dmg = variance(S.hero.atk * playerMult());
+    await heroAttackFx();
+    S.boss.curHp = Math.max(0, S.boss.curHp - dmg);
+    floater($("bossSprite"), "-"+dmg, "dmg");
+    setLog(`${S.hero.name} strikes with ${S.hero.weapon} for ${dmg} damage!`);
+    render();
+  }
+
+  async function playerStrengthen(){
+    if(S.buff < STACK_CAP) S.buff++;
+    const hs=$("heroSprite");
+    hs.classList.add("buff");
+    floater(hs,"↑ STR","txt");
+    await delay(500);
+    hs.classList.remove("buff");
+    setLog(`${S.hero.name} channels power! Damage is now ×${fmt(playerMult())}.`);
+    render();
+  }
+
+  async function witchRegen(){
+    if(S.hero.special!=="heal") return;
+    if(S.hero.curHp >= S.hero.maxHp) return;
+    const before = S.hero.curHp;
+    S.hero.curHp = Math.min(S.hero.maxHp, S.hero.curHp+10);
+    const gained = Math.round(S.hero.curHp-before);
+    if(gained>0){
+      const hs=$("heroSprite");
+      hs.classList.add("healfx");
+      floater(hs,"+"+gained,"heal");
+      setLog(`The Witch's staff restores ${gained} HP.`);
+      render();
+      await delay(500);
+      hs.classList.remove("healfx");
+    }
+  }
+
+  // ---------- dragon AI ----------
+  function chooseDragonAction(){
+    const hpRatio = S.boss.curHp/S.boss.maxHp;
+    let w = { attack:60, heal:0, weaken:15 };
+    if(hpRatio < 0.30) w.heal = 70;            // desperate heal
+    else if(hpRatio < 0.55) w.heal = 25;
+    if(S.buff >= 2 && S.buff > -STACK_CAP) w.weaken += 45;
+    if(S.buff <= -STACK_CAP) w.weaken = 0; // already fully weakened
+    const total = w.attack+w.heal+w.weaken;
+    let roll = Math.random()*total;
+    if((roll-=w.attack)<0) return "attack";
+    if((roll-=w.heal)<0) return "heal";
+    return "weaken";
+  }
+
+  async function dragonTurn(){
+    const action = chooseDragonAction();
+    if(action==="attack"){
+      // archer dodge check
+      if(S.hero.special==="dodge" && Math.random()<0.5){
+        const hs=$("heroSprite");
+        projectile(false,"🔥");
+        await delay(380);
+        hs.classList.add("dodge");
+        floater(hs,"DODGE!","txt");
+        setLog(`The Dragon breathes fire — ${S.hero.name} dodges!`);
+        await delay(500);
+        hs.classList.remove("dodge");
+        return;
+      }
+      const dmg = variance(S.boss.atk);
+      await bossAttackFx();
+      S.hero.curHp = Math.max(0, S.hero.curHp - dmg);
+      floater($("heroSprite"),"-"+dmg,"dmg");
+      setLog(`The Dragon attacks for ${dmg} damage!`);
+      render();
+    }else if(action==="heal"){
+      const before = S.boss.curHp;
+      S.boss.curHp = Math.min(S.boss.maxHp, S.boss.curHp + S.boss.heal);
+      const g = Math.round(S.boss.curHp-before);
+      const bs=$("bossSprite");
+      bs.classList.add("healfx");
+      floater(bs,"+"+g,"heal");
+      setLog(`The Dragon licks its wounds and heals ${g} HP.`);
+      render();
+      await delay(500);
+      bs.classList.remove("healfx");
+    }else{ // weaken
+      if(S.buff > -STACK_CAP) S.buff--;
+      const hs=$("heroSprite");
+      // ominous purple-ish glow reuse shake
+      hs.classList.add("shake");
+      floater(hs,"↓ WEAK","dmg");
+      setLog(`The Dragon roars! ${S.hero.name}'s damage drops to ×${fmt(playerMult())}.`);
+      render();
+      await delay(450);
+      hs.classList.remove("shake");
+    }
+  }
+
+  // ---------- round controller ----------
+  async function takeTurn(playerAction){
+    if(busy || S.done) return;
+    busy = true;
+    setButtons(false);
+
+    // 1. player action
+    if(playerAction==="attack") await playerAttack();
+    else await playerStrengthen();
+    await delay(250);
+
+    // 2. witch passive regen
+    await witchRegen();
+
+    // 3. check boss dead
+    if(S.boss.curHp <= 0){ return endBattle(true); }
+
+    await delay(200);
+
+    // 4. dragon turn
+    await dragonTurn();
+    await delay(250);
+
+    // 5. check hero dead
+    if(S.hero.curHp <= 0){ return endBattle(false); }
+
+    // 6. next round
+    S.round++;
+    render();
+    busy = false;
+    setButtons(true);
+  }
+
+  async function endBattle(win){
+    S.done = true;
+    setButtons(false);
+    const loserSprite = win ? $("bossSprite") : $("heroSprite");
+    loserSprite.classList.add("faint");
+    await delay(850);
+    const ov = $("overlay");
+    ov.className = "overlay show "+(win?"win":"lose");
+    $("overlayBig").textContent = win ? "VICTORY!" : "DEFEAT";
+    $("overlaySub").textContent = win
+      ? `${S.hero.name} has slain the ${DRAGON.name}! (Round ${S.round})`
+      : `The ${DRAGON.name} prevails... ${S.hero.name} has fallen.`;
+    busy = false;
+  }
+
+  // ---------- wire battle buttons ----------
+  $("attackBtn").addEventListener("click", ()=>takeTurn("attack"));
+  $("strBtn").addEventListener("click", ()=>takeTurn("strengthen"));
+  $("againBtn").addEventListener("click", ()=>{ buildCards(); $("overlay").className="overlay"; show("select"); });
+  $("menuBtn").addEventListener("click", ()=>{ $("overlay").className="overlay"; show("menu"); });
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>DEAD SECTOR — Zombie Shooter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ===== MAIN MENU ===== -->
+    <div id="screen-menu" class="screen active">
+      <div class="menu-content">
+        <div class="title-block">
+          <div class="title-main">DEAD SECTOR</div>
+          <div class="title-sub">// SURVIVE THE SWARM //</div>
+        </div>
+        <div class="menu-buttons">
+          <button id="btn-start" class="btn btn-primary">DEPLOY</button>
+          <button id="btn-howto" class="btn btn-secondary">HOW TO PLAY</button>
+          <button id="btn-dashboard" class="btn btn-secondary">DASHBOARD</button>
+        </div>
+        <div class="menu-foot">Headphones recommended · A self-contained browser game</div>
+      </div>
+    </div>
+
+    <!-- ===== HOW TO PLAY ===== -->
+    <div id="screen-howto" class="screen">
+      <div class="panel">
+        <div class="panel-title">HOW TO PLAY</div>
+        <ul class="howto-list">
+          <li><b>WASD</b> — move the soldier</li>
+          <li><b>Mouse</b> — aim the flashlight &amp; gun (fires automatically)</li>
+          <li><b>R</b> — reload early (auto-reloads when empty)</li>
+          <li><b>Space / Left-click</b> — fire the RPG (when equipped)</li>
+          <li><b>P / Esc</b> — pause</li>
+          <li><b>M</b> — mute / unmute</li>
+        </ul>
+        <div class="howto-notes">
+          The map is dark — your <span class="hl">flashlight cone</span> reveals zombies and walls
+          block the light. You have <span class="hl">100 HP</span> and <span class="hl">100 armor</span>;
+          armor takes damage first and regenerates if you stay safe — but once it
+          <span class="hl">fully breaks</span> it won't recharge until you grab an
+          <span class="hl">armor core</span>. Survive 5 rounds of escalating hordes, upgrade your
+          weapon each round, then endure the <span class="hl">endless</span> round 6. Each kill is
+          <span class="hl">+10</span>.
+        </div>
+        <button class="btn btn-secondary btn-back" data-back>BACK</button>
+      </div>
+    </div>
+
+    <!-- ===== DASHBOARD ===== -->
+    <div id="screen-dashboard" class="screen">
+      <div class="panel">
+        <div class="panel-title">DASHBOARD — TOP 5</div>
+        <table class="scores-table">
+          <thead>
+            <tr><th>#</th><th>NAME</th><th>SCORE</th></tr>
+          </thead>
+          <tbody id="scores-body"></tbody>
+        </table>
+        <button class="btn btn-secondary btn-back" data-back>BACK</button>
+      </div>
+    </div>
+
+    <!-- ===== GAME ===== -->
+    <div id="screen-game" class="screen">
+      <canvas id="game-canvas"></canvas>
+
+      <!-- HUD overlay -->
+      <div id="hud">
+        <div class="hud-top-left">
+          <div class="bar-row">
+            <span class="bar-label">HP</span>
+            <div class="bar"><div id="hp-fill" class="bar-fill hp"></div></div>
+            <span id="hp-text" class="bar-text">100</span>
+          </div>
+          <div class="bar-row">
+            <span class="bar-label">AR</span>
+            <div class="bar"><div id="armor-fill" class="bar-fill armor"></div></div>
+            <span id="armor-text" class="bar-text">100</span>
+          </div>
+        </div>
+
+        <div class="hud-top-right">
+          <div id="round-text" class="hud-round">ROUND 1</div>
+          <div id="score-text" class="hud-score">0</div>
+          <div id="zombie-count" class="hud-zcount">☣ 0</div>
+        </div>
+
+        <div class="hud-bottom">
+          <div id="weapon-name" class="weapon-name">PISTOL</div>
+          <div id="ammo-text" class="ammo-text">12 / 12</div>
+          <div id="reload-hint" class="reload-hint"></div>
+        </div>
+
+        <div id="mute-indicator" class="mute-indicator"></div>
+      </div>
+
+      <!-- Round banner -->
+      <div id="round-banner" class="round-banner"></div>
+
+      <!-- Pause overlay -->
+      <div id="pause-overlay" class="overlay">
+        <div class="overlay-box">
+          <div class="overlay-title">PAUSED</div>
+          <button id="btn-resume" class="btn btn-primary">RESUME</button>
+          <button id="btn-quit" class="btn btn-secondary">QUIT TO MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== GAME OVER ===== -->
+    <div id="screen-gameover" class="screen">
+      <div class="panel">
+        <div class="panel-title danger">YOU DIED</div>
+        <div class="gameover-stats">
+          <div>FINAL SCORE</div>
+          <div id="final-score" class="final-score">0</div>
+          <div id="gameover-detail" class="gameover-detail"></div>
+        </div>
+        <div id="name-entry" class="name-entry">
+          <div class="name-prompt">NEW HIGH SCORE! Enter your name:</div>
+          <input id="name-input" maxlength="12" placeholder="SOLDIER" autocomplete="off">
+          <button id="btn-save" class="btn btn-primary">SAVE</button>
+        </div>
+        <div class="gameover-buttons">
+          <button id="btn-retry" class="btn btn-primary">REDEPLOY</button>
+          <button id="btn-menu" class="btn btn-secondary">MENU</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

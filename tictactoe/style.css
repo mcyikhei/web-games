@@ -1,0 +1,344 @@
+:root {
+  --bg:         #0f0e17;
+  --surface:    #1a1a2e;
+  --grid:       rgba(255, 255, 255, 0.12);
+  --x-color:    #ff6b6b;
+  --o-color:    #4ecdc4;
+  --primary:    #7c4dff;
+  --primary-h:  #9d6eff;
+  --text:       #fffffe;
+  --text-dim:   #a7a9be;
+  --cell-size:  100px;
+  --gap:        4px;
+  --radius:     12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ── Screens ───────────────────────────────────────────────────────────── */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  opacity: 0;
+  transform: translateY(24px);
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.screen.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────── */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  letter-spacing: 0.04em;
+}
+
+.btn:active { transform: scale(0.95) !important; }
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(124, 77, 255, 0.35);
+}
+.btn-primary:hover {
+  background: var(--primary-h);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 26px rgba(124, 77, 255, 0.5);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+}
+.btn-ghost:hover { color: var(--text); }
+
+.btn-small {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+.btn-small:hover { color: var(--text); background: rgba(255, 255, 255, 0.06); }
+
+.hidden { display: none !important; }
+
+/* ── Menu Screen ───────────────────────────────────────────────────────── */
+.menu-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+.title {
+  font-size: clamp(3rem, 8vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 0.95;
+  text-align: center;
+  background: linear-gradient(135deg, var(--x-color) 0%, var(--primary) 50%, var(--o-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: float 3.2s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  width: 200px;
+}
+
+/* ── Board Screen ──────────────────────────────────────────────────────── */
+.board-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: calc(var(--cell-size) * 3 + var(--gap) * 2 + 8px);
+}
+
+#game-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+#turn-label {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.level-badge {
+  padding: 0.2rem 0.55rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.level-1 { background: rgba(78,205,196,0.15); color: var(--o-color); border: 1px solid var(--o-color); }
+.level-2 { background: rgba(255,193,7,0.15);  color: #ffc107;         border: 1px solid #ffc107; }
+.level-3 { background: rgba(255,107,107,0.15); color: var(--x-color); border: 1px solid var(--x-color); }
+
+/* ── Board Grid ────────────────────────────────────────────────────────── */
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, var(--cell-size));
+  grid-template-rows: repeat(3, var(--cell-size));
+  gap: var(--gap);
+  background: var(--grid);
+  border-radius: 16px;
+  padding: var(--gap);
+  position: relative;
+}
+
+.cell {
+  background: var(--bg);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cell:hover:not(.x):not(.o) {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* piece enter animation */
+.piece {
+  font-size: 2.6rem;
+  font-weight: 900;
+  line-height: 1;
+  display: block;
+  animation: pieceIn 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes pieceIn {
+  from { transform: scale(0) rotate(-25deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);  opacity: 1; }
+}
+
+.cell.x .piece { color: var(--x-color); }
+.cell.o .piece { color: var(--o-color); }
+
+/* winning cell pulse */
+.winning-cell.x { animation: winX 0.55s ease-in-out infinite alternate; }
+.winning-cell.o { animation: winO 0.55s ease-in-out infinite alternate; }
+
+@keyframes winX {
+  from { background: rgba(255,107,107,0.08); }
+  to   { background: rgba(255,107,107,0.32); box-shadow: inset 0 0 10px rgba(255,107,107,0.4); }
+}
+@keyframes winO {
+  from { background: rgba(78,205,196,0.08); }
+  to   { background: rgba(78,205,196,0.32); box-shadow: inset 0 0 10px rgba(78,205,196,0.4); }
+}
+
+/* ── Game-Over Overlay ─────────────────────────────────────────────────── */
+.overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: rgba(15, 14, 23, 0.88);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 10;
+}
+
+.overlay.show  { opacity: 1; }
+
+.overlay-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  animation: overlayIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes overlayIn {
+  from { transform: scale(0.75); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.result-text {
+  font-size: 1.9rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--x-color), var(--primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.result-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  margin-bottom: 0.4rem;
+  min-height: 1.2em;
+}
+
+.overlay-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 148px;
+}
+
+/* ── Victory Screen ────────────────────────────────────────────────────── */
+.victory-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* CSS star shape */
+.victory-star {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(135deg, #ffd700, #ff9800);
+  clip-path: polygon(
+    50% 0%, 61% 35%, 98% 35%, 68% 57%,
+    79% 91%, 50% 70%, 21% 91%, 32% 57%,
+    2% 35%,  39% 35%
+  );
+}
+
+.victory-star.animate {
+  animation: starIn 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) both,
+             starFloat 3s ease-in-out 0.7s infinite;
+}
+
+@keyframes starIn {
+  from { transform: scale(0) rotate(-200deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);    opacity: 1; }
+}
+
+@keyframes starFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%       { transform: translateY(-8px) rotate(5deg); }
+}
+
+.victory-title {
+  font-size: clamp(2.5rem, 7vw, 3.5rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, #ffd700, var(--x-color), var(--primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: float 3s ease-in-out infinite;
+}
+
+.victory-sub {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+}
+
+.victory-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 180px;
+  margin-top: 0.5rem;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 380px) {
+  :root { --cell-size: 88px; }
+  .piece { font-size: 2.2rem; }
+}
